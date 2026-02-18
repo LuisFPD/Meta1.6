@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>PWA - Registro de Artículos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 40px auto;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 6px;
+            margin: 5px 0 10px 0;
+        }
+        button {
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+        .articulo {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+
+<h1>Registro de Artículos</h1>
+
+<form id="formArticulo">
+    <label>Título</label>
+    <input type="text" id="titulo" required>
+
+    <label>Autor</label>
+    <input type="text" id="autor" required>
+
+    <label>Resumen</label>
+    <textarea id="resumen" required></textarea>
+
+    <button type="submit">Guardar Artículo</button>
+</form>
+
+<p id="mensaje"></p>
+
+<h2>Artículos Registrados</h2>
+<div id="listaArticulos"></div>
+
+<script>
+    const form = document.getElementById("formArticulo");
+    const mensaje = document.getElementById("mensaje");
+    const lista = document.getElementById("listaArticulos");
+
+    function obtenerArticulos() {
+        return JSON.parse(localStorage.getItem("artículos")) || [];
+    }
+
+    function guardarArticulos(articulos) {
+        localStorage.setItem("artículos", JSON.stringify(articulos));
+    }
+
+    function renderizarArticulos() {
+        lista.innerHTML = "";
+        const articulos = obtenerArticulos();
+
+        articulos.forEach(articulo => {
+            const div = document.createElement("div");
+            div.className = "articulo";
+
+            div.innerHTML = `
+                <strong>${articulo.titulo}</strong><br>
+                Autor: ${articulo.autor}<br>
+                Estado: ${articulo.estatus}<br>
+                Fecha: ${articulo.fecha}<br>
+                <button onclick="eliminarArticulo(${articulo.id})">Eliminar</button>
+            `;
+
+            lista.appendChild(div);
+        });
+    }
+
+    function eliminarArticulo(id) {
+        let articulos = obtenerArticulos();
+        articulos = articulos.filter(a => a.id !== id);
+        guardarArticulos(articulos);
+        renderizarArticulos();
+    }
+
+    form.addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        const titulo = document.getElementById("titulo").value.trim();
+        const autor = document.getElementById("autor").value.trim();
+        const resumen = document.getElementById("resumen").value.trim();
+
+        if (!titulo || !autor || !resumen) {
+            mensaje.textContent = "Todos los campos son obligatorios.";
+            mensaje.className = "error";
+            return;
+        }
+
+        const nuevoArticulo = {
+            id: Date.now(),
+            titulo: titulo,
+            autor: autor,
+            resumen: resumen,
+            estatus: "Registrado",
+            fecha: new Date().toISOString()
+        };
+
+        const articulos = obtenerArticulos();
+        articulos.push(nuevoArticulo);
+        guardarArticulos(articulos);
+
+        mensaje.textContent = "Artículo guardado correctamente.";
+        mensaje.className = "success";
+
+        form.reset();
+        renderizarArticulos();
+    });
+
+    // Render inicial
+    renderizarArticulos();
+</script>
+
+</body>
+</html>
