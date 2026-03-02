@@ -1,49 +1,51 @@
 const express = require("express");
-const cors = require("cors");
 const path = require("path");
+const mysql = require("mysql2/promise");
 
 const app = express();
-const PORT = 3000;
 
-app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-let articulos = [];
-
-// Obtener artículos
-app.get("/api/articulos", (req, res) => {
-    res.json(articulos);
+const pool = mysql.createPool({
+  host: "localhost",
+  user: "root",
+  password: "TU_PASSWORD",
+  database: "articulos_db"
 });
 
-// Crear artículo
-app.post("/api/articulos", (req, res) => {
-    const { titulo, autor, resumen } = req.body;
+app.post("/api/articulos", async (req, res) => {
+  try {
+    const { titulo, autor, resumen, fecha } = req.body;
 
-    if (!titulo || !autor || !resumen) {
-        return res.status(400).json({ mensaje: "Todos los campos son obligatorios" });
-    }
+    await pool.query(
+      "INSERT INTO articulos (titulo, autor, resumen, fecha) VALUES (?, ?, ?, ?)",
+      [titulo, autor, resumen, fecha]
+    );
 
-    const nuevoArticulo = {
-        id: Date.now(),
-        titulo,
-        autor,
-        resumen,
-        estatus: "Registrado",
-        fecha: new Date().toISOString()
-    };
-
-    articulos.push(nuevoArticulo);
-    res.status(201).json(nuevoArticulo);
+    res.json({ mensaje: "Guardado en MariaDB" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error en BD" });
+  }
 });
 
-// Eliminar artículo
-app.delete("/api/articulos/:id", (req, res) => {
-    const id = parseInt(req.params.id);
-    articulos = articulos.filter(a => a.id !== id);
-    res.json({ mensaje: "Artículo eliminado" });
+app.delete("/api/articulos/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await pool.query(
+      "DELETE FROM articulos WHERE id = ?",
+      [id]
+    );
+
+    res.json({ mensaje: "Eliminado en BD" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error eliminando" });
+  }
 });
 
-app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+app.listen(3000, "0.0.0.0", () => {
+  console.log("Servidor en http://localhost:3000");
 });
