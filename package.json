@@ -1,7 +1,7 @@
 {
   "name": "meta1.7-offline-first",
   "version": "1.0.0",
-  "description": "PWA Gestion Articulos",
+  "description": "PWA Offline First - Revision Academica",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

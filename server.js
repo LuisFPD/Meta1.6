@@ -3,49 +3,38 @@ const path = require("path");
 const mysql = require("mysql2/promise");
 
 const app = express();
-
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 const pool = mysql.createPool({
   host: "localhost",
   user: "root",
-  password: "TU_PASSWORD",
+  password: "Luicito2022",
   database: "articulos_db"
 });
 
+app.get("/api/articulos", async (req, res) => {
+  const [rows] = await pool.query("SELECT * FROM articulos");
+  res.json(rows);
+});
+
 app.post("/api/articulos", async (req, res) => {
-  try {
-    const { titulo, autor, resumen, fecha } = req.body;
+  const { id, titulo, autor, resumen, fecha, version } = req.body;
 
-    await pool.query(
-      "INSERT INTO articulos (titulo, autor, resumen, fecha) VALUES (?, ?, ?, ?)",
-      [titulo, autor, resumen, fecha]
-    );
+  await pool.query(
+    "INSERT INTO articulos (id, titulo, autor, resumen, fecha, version) VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE titulo=?, autor=?, resumen=?, fecha=?, version=?",
+    [id, titulo, autor, resumen, fecha, version,
+     titulo, autor, resumen, fecha, version]
+  );
 
-    res.json({ mensaje: "Guardado en MariaDB" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error en BD" });
-  }
+  res.json({ ok: true });
 });
 
 app.delete("/api/articulos/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    await pool.query(
-      "DELETE FROM articulos WHERE id = ?",
-      [id]
-    );
-
-    res.json({ mensaje: "Eliminado en BD" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error eliminando" });
-  }
+  await pool.query("DELETE FROM articulos WHERE id = ?", [req.params.id]);
+  res.json({ ok: true });
 });
 
-app.listen(3000, "0.0.0.0", () => {
-  console.log("Servidor en http://localhost:3000");
-});
+app.listen(3000, "0.0.0.0", () =>
+  console.log("Servidor en http://localhost:3000")
+);
