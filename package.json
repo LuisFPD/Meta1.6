@@ -1,0 +1,14 @@
+{
+  "name": "meta1.7-offline-first",
+  "version": "1.0.0",
+  "description": "PWA Offline First - Revision Academica",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.22.1",
+    "mysql2": "^3.9.7",
+    "selfsigned": "^5.5.0"
+  }
+}
